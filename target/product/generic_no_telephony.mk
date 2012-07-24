@@ -38,7 +38,6 @@ PRODUCT_PACKAGES := \
     OneTimeInitializer \
     Provision \
     Phone \
-    QuickSearchBox \
     Settings \
     SystemUI \
     CalendarProvider \
