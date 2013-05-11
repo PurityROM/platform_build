@@ -72,10 +72,10 @@ ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
                             -fstrict-aliasing    \
                             -funswitch-loops
 else
-    TARGET_arm_CFLAGS :=    -O2 \
+    TARGET_arm_CFLAGS :=    -O3 \
                             -fomit-frame-pointer \
                             -fstrict-aliasing    \
-                            -funswitch-loops
+                            -fno-tree-vectorize
 endif
 
 # Modules can choose to compile some source as thumb. As
@@ -88,15 +88,14 @@ ifeq ($(ARCH_ARM_HAVE_THUMB_SUPPORT),true)
                                 -O3 \
                                 -fomit-frame-pointer \
                                 -fstrict-aliasing \
-                                -Wstrict-aliasing=2 \
+                                -Wstrict-aliasing=3 \
                                 -Werror=strict-aliasing
     else
         TARGET_thumb_CFLAGS :=  -mthumb \
-                                -Os \
+                                -O3 \
                                 -fomit-frame-pointer \
-                                -fstrict-aliasing \
-                                -Wstrict-aliasing=2 \
-                                -Werror=strict-aliasing
+                                -fno-strict-aliasing \
+                                -fno-tree-vectorize 
     endif
 else
 TARGET_thumb_CFLAGS := $(TARGET_arm_CFLAGS)
