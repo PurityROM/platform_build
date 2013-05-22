@@ -176,6 +176,8 @@ TARGET_GLOBAL_CFLAGS += -mno-thumb-interwork
 endif
 
 TARGET_GLOBAL_CPPFLAGS += -fvisibility-inlines-hidden
+# Disable ISO C++
+DEBUG_NO_STDCXX11 ?= yes  
 ifneq ($(DEBUG_NO_STDCXX11),yes)
 TARGET_GLOBAL_CPPFLAGS += $(call cc-option,-std=gnu++11)
 endif
