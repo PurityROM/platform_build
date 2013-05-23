@@ -48,7 +48,7 @@ $(combo_target)HAVE_KERNEL_MODULES := 0
 
 $(combo_target)GLOBAL_CFLAGS := -fno-exceptions -Wno-multichar
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
-    $(combo_target)RELEASE_CFLAGS := -O3 -g -Wstrict-aliasing=2
+    $(combo_target)RELEASE_CFLAGS :=  -O3 -fgcse-after-reload -fipa-cp-clone -fpredictive-commoning -fsched-spec-load -funswitch-loops -fvect-cost-model -g -Wstrict-aliasing=3
 else
     $(combo_target)RELEASE_CFLAGS := -O2 -g -Wstrict-aliasing=2
 endif
@@ -63,7 +63,7 @@ ifeq ($(DEBUG_NO_STRICT_ALIASING),yes)
 $(combo_target)RELEASE_CFLAGS += -fno-strict-aliasing -Wno-error=strict-aliasing
 endif
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
-    $(combo_target)GLOBAL_LDFLAGS := -Wl,-O2
+    $(combo_target)GLOBAL_LDFLAGS := -Wl,-O3
 else
     $(combo_target)GLOBAL_LDFLAGS := -Wl,-O1
 endif

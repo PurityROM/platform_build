@@ -68,9 +68,18 @@ TARGET_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
 
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
     TARGET_arm_CFLAGS :=    -O3 \
+                            -fgcse-after-reload \
+                            -fipa-cp-clone \
+                            -fpredictive-commoning \
+                            -fsched-spec-load \
+                            -funswitch-loops \
+                            -ftree-loop-distribution \
+                            -ftree-loop-linear \
+                            -fvect-cost-model \
                             -fomit-frame-pointer \
-                            -fstrict-aliasing    \
-                            -funswitch-loops
+                            -fstrict-aliasing \
+                            -Wstrict-aliasing=3 \
+                            -Werror=strict-aliasing
 else
     TARGET_arm_CFLAGS :=    -O3 \
                             -fomit-frame-pointer \
@@ -88,8 +97,14 @@ ifeq ($(ARCH_ARM_HAVE_THUMB_SUPPORT),true)
                                 -O3 \
                                 -fomit-frame-pointer \
                                 -fstrict-aliasing \
-                                -Wstrict-aliasing=3 \
-                                -Werror=strict-aliasing
+                                -Wstrict-aliasing=2 \
+                                -Werror=strict-aliasing \
+                                -fgcse-after-reload \
+                                -fsched-spec-load \
+                                -funswitch-loops \
+                                -fvect-cost-model \
+                                -fipa-cp-clone \
+                                -pipe
     else
         TARGET_thumb_CFLAGS :=  -mthumb \
                                 -O3 \
@@ -122,8 +137,16 @@ ifeq ($(FORCE_ARM_DEBUGGING),true)
   TARGET_thumb_CFLAGS += -marm -fno-omit-frame-pointer
 endif
 
+ifeq ($(TARGET_DISABLE_ARM_PIE),true)
+   PIE_GLOBAL_CFLAGS :=
+   PIE_EXECUTABLE_TRANSFORM := -Wl,-T,$(BUILD_SYSTEM)/armelf.x
+else
+   PIE_GLOBAL_CFLAGS := -fPIE
+   PIE_EXECUTABLE_TRANSFORM := -fPIE -pie
+endif
+
 TARGET_GLOBAL_CFLAGS += \
-			-msoft-float -fpic -fPIE \
+                        -msoft-float -fpic $(PIE_GLOBAL_CFLAGS) \
 			-ffunction-sections \
 			-fdata-sections \
 			-funwind-tables \
@@ -132,6 +155,7 @@ TARGET_GLOBAL_CFLAGS += \
 			-Werror=format-security \
 			-D_FORTIFY_SOURCE=1 \
 			-fno-short-enums \
+                        -pipe \
 			$(arch_variant_cflags)
 
 android_config_h := $(call select-android-config-h,linux-arm)
@@ -162,7 +186,6 @@ TARGET_GLOBAL_LDFLAGS += \
 			-Wl,-z,relro \
 			-Wl,-z,now \
 			-Wl,--warn-shared-textrel \
-			-Wl,--icf=safe \
 			$(arch_variant_ldflags)
 
 # We only need thumb interworking in cases where thumb support
@@ -186,7 +209,7 @@ endif
 TARGET_RELEASE_CFLAGS += \
 			-DNDEBUG \
 			-g \
-			-Wstrict-aliasing=2 \
+			-Wstrict-aliasing=3 \
 			-Werror=strict-aliasing \
 			-fgcse-after-reload \
 			-frerun-cse-after-loop \
