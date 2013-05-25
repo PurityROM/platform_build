@@ -116,6 +116,15 @@ else
 TARGET_thumb_CFLAGS := $(TARGET_arm_CFLAGS)
 endif
 
+#SHUT THE F$#@ UP!
+TARGET_arm_CFLAGS += -Wno-unused-parameter \
+                        -Wno-unused-value \
+                        -Wno-unused-function
+
+TARGET_thumb_CFLAGS += -Wno-unused-parameter \
+                        -Wno-unused-value \
+                        -Wno-unused-function
+
 # Turn off strict-aliasing if we're building an AOSP variant without the
 # patchset...
 ifeq ($(DEBUG_NO_STRICT_ALIASING),yes)
