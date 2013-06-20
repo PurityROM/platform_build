@@ -214,6 +214,11 @@ ifneq ($(DEBUG_NO_STDCXX11),yes)
 TARGET_GLOBAL_CPPFLAGS += $(call cc-option,-std=gnu++11)
 endif
 
+ifneq ($(DEBUG_NO_STDC11),yes)
+LOCAL_C11_FILES := $(filter %.c, $(LOCAL_SRC_FILES))
+TARGET_GLOBAL_CFLAGS += $(call add-src-files-target-cflags, $(LOCAL_C11_FILES), -std=gnu11)
+endif
+
 # More flags/options can be added here
 TARGET_RELEASE_CFLAGS += \
 			-DNDEBUG \
@@ -304,10 +309,7 @@ TARGET_DEFAULT_SYSTEM_SHARED_LIBRARIES := libc libstdc++ libm
 
 TARGET_CUSTOM_LD_COMMAND := true
 
-# Enable the Dalvik JIT compiler if not already specified.
-ifeq ($(strip $(WITH_JIT)),)
-    WITH_JIT := true
-endif
+WITH_JIT := true
 
 define transform-o-to-shared-lib-inner
 $(hide) $(PRIVATE_CXX) \
