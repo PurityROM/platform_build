@@ -97,7 +97,7 @@ ifeq ($(ARCH_ARM_HAVE_THUMB_SUPPORT),true)
                                 -O3 \
                                 -fomit-frame-pointer \
                                 -fstrict-aliasing \
-                                -Wstrict-aliasing=2 \
+                                -Wstrict-aliasing=3 \
                                 -Werror=strict-aliasing \
                                 -fgcse-after-reload \
                                 -fsched-spec-load \
@@ -195,6 +195,7 @@ TARGET_GLOBAL_LDFLAGS += \
 			-Wl,-z,relro \
 			-Wl,-z,now \
 			-Wl,--warn-shared-textrel \
+            -Wl,--icf=safe \
 			$(arch_variant_ldflags)
 
 # We only need thumb interworking in cases where thumb support
