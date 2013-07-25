@@ -30,7 +30,6 @@ PRODUCT_PACKAGES := \
     FusedLocation \
     Gallery2 \
     InputDevices \
-    LatinIME \
     Launcher2 \
     MusicFX \
     OneTimeInitializer \
