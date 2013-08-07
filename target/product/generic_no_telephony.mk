@@ -31,7 +31,6 @@ PRODUCT_PACKAGES := \
     Gallery2 \
     InputDevices \
     Launcher2 \
-    MusicFX \
     OneTimeInitializer \
     Provision \
     Phone \
