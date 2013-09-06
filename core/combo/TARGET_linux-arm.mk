@@ -69,7 +69,7 @@ endif
 TARGET_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
 
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
-    TARGET_arm_CFLAGS :=    -O3 \
+    TARGET_arm_CFLAGS :=    -O2 \
                             -fomit-frame-pointer \
                             -fstrict-aliasing    \
                             -funswitch-loops
@@ -83,7 +83,7 @@ endif
 # Modules can choose to compile some source as thumb.
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
         TARGET_thumb_CFLAGS :=  -mthumb \
-                                -O3 \
+                                -O2 \
                                 -fomit-frame-pointer \
                                 -fstrict-aliasing \
                                 -Wstrict-aliasing=2 \
@@ -96,6 +96,15 @@ else
                                 -Wstrict-aliasing=2 \
                                 -Werror=strict-aliasing
 endif
+
+#SHUT THE F$#@ UP!
+TARGET_arm_CFLAGS +=    -Wno-unused-parameter \
+                        -Wno-unused-value \
+                        -Wno-unused-function
+
+TARGET_thumb_CFLAGS +=  -Wno-unused-parameter \
+                        -Wno-unused-value \
+                        -Wno-unused-function
 
 # Turn off strict-aliasing if we're building an AOSP variant without the
 # patchset...
