@@ -69,7 +69,7 @@ endif
 TARGET_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
 
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
-    TARGET_arm_CFLAGS :=    -O2 \
+    TARGET_arm_CFLAGS :=    -O3 \
                             -fomit-frame-pointer \
                             -fstrict-aliasing    \
                             -funswitch-loops
@@ -83,7 +83,7 @@ endif
 # Modules can choose to compile some source as thumb.
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
         TARGET_thumb_CFLAGS :=  -mthumb \
-                                -O2 \
+                                -O3 \
                                 -fomit-frame-pointer \
                                 -fstrict-aliasing \
                                 -Wstrict-aliasing=2 \
