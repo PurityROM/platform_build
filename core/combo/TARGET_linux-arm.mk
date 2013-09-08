@@ -35,7 +35,7 @@ TARGET_ARCH_VARIANT := armv5te
 endif
 
 ifeq ($(strip $(TARGET_GCC_VERSION_EXP)),)
-TARGET_GCC_VERSION := 4.7
+TARGET_GCC_VERSION := 4.8
 else
 TARGET_GCC_VERSION := $(TARGET_GCC_VERSION_EXP)
 endif
@@ -43,6 +43,12 @@ endif
 TARGET_ARCH_SPECIFIC_MAKEFILE := $(BUILD_COMBOS)/arch/$(TARGET_ARCH)/$(TARGET_ARCH_VARIANT).mk
 ifeq ($(strip $(wildcard $(TARGET_ARCH_SPECIFIC_MAKEFILE))),)
 $(error Unknown ARM architecture version: $(TARGET_ARCH_VARIANT))
+endif
+
+ifeq ($(DONT_WARN_STRICT_ALIASING),)
+STRICT_ALIASING_WARNINGS := \
+                        -Wstrict-aliasing=2 \
+                        -Werror=strict-aliasing
 endif
 
 include $(TARGET_ARCH_SPECIFIC_MAKEFILE)
@@ -69,10 +75,13 @@ endif
 TARGET_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
 
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
-    TARGET_arm_CFLAGS :=    -O3 \
-                            -fomit-frame-pointer \
-                            -fstrict-aliasing    \
-                            -funswitch-loops
+TARGET_arm_CFLAGS :=    -O3 \
+                        -fomit-frame-pointer \
+                        -fstrict-aliasing    \
+                        -funswitch-loops \
+                        -funsafe-loop-optimizations \
+                        -ftree-vectorize \
+                        -pipe $(STRICT_ALIASING_WARNINGS)
 else
     TARGET_arm_CFLAGS :=    -O2 \
                             -fomit-frame-pointer \
@@ -82,12 +91,12 @@ endif
 
 # Modules can choose to compile some source as thumb.
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
-        TARGET_thumb_CFLAGS :=  -mthumb \
-                                -O3 \
-                                -fomit-frame-pointer \
-                                -fstrict-aliasing \
-                                -Wstrict-aliasing=2 \
-                                -Werror=strict-aliasing
+TARGET_thumb_CFLAGS :=  -mthumb \
+                        -O3 \
+                        -fomit-frame-pointer \
+                        -fstrict-aliasing \
+                        -funsafe-math-optimizations \
+                        -pipe $(STRICT_ALIASING_WARNINGS)
 else
         TARGET_thumb_CFLAGS :=  -mthumb \
                                 -Os \
@@ -97,7 +106,7 @@ else
                                 -Werror=strict-aliasing
 endif
 
-#SHUT THE F$#@ UP!
+#Silence warnings
 TARGET_arm_CFLAGS +=    -Wno-unused-parameter \
                         -Wno-unused-value \
                         -Wno-unused-function
@@ -127,8 +136,16 @@ ifeq ($(FORCE_ARM_DEBUGGING),true)
   TARGET_thumb_CFLAGS += -marm -fno-omit-frame-pointer
 endif
 
+ifeq ($(TARGET_DISABLE_ARM_PIE),true)
+   PIE_GLOBAL_CFLAGS :=
+   PIE_EXECUTABLE_TRANSFORM := -Wl,-T,$(BUILD_SYSTEM)/armelf.x
+else
+   PIE_GLOBAL_CFLAGS := -fPIE
+   PIE_EXECUTABLE_TRANSFORM := -fPIE -pie
+endif
+
 TARGET_GLOBAL_CFLAGS += \
-			-msoft-float -fpic -fPIE \
+                        -msoft-float -fpic $(PIE_GLOBAL_CFLAGS) \
 			-ffunction-sections \
 			-fdata-sections \
 			-funwind-tables \
@@ -137,7 +154,8 @@ TARGET_GLOBAL_CFLAGS += \
 			-Werror=format-security \
 			-D_FORTIFY_SOURCE=1 \
 			-fno-short-enums \
-			$(arch_variant_cflags)
+                        -pipe \
+			$(arch_variant_cflags) $(STRICT_ALIASING_WARNINGS)
 
 android_config_h := $(call select-android-config-h,linux-arm)
 TARGET_ANDROID_CONFIG_CFLAGS := -include $(android_config_h) -I $(dir $(android_config_h))
@@ -151,6 +169,13 @@ ifneq ($(filter 4.6 4.6.% 4.7 4.7.% 4.8, $(TARGET_GCC_VERSION)),)
 TARGET_GLOBAL_CFLAGS += -Wno-unused-but-set-variable -fno-builtin-sin \
 			-fno-strict-volatile-bitfields \
 			-Wno-unused-parameter -Wno-unused-but-set-parameter
+ifneq ($(filter 4.8 4.8.%, $(shell $(TARGET_CC) --version)),)
+gcc_variant_ldflags := \
+			-Wl,--enable-new-dtags
+else
+gcc_variant_ldflags := \
+			-Wl,--icf=safe
+endif
 endif
 
 # This is to avoid the dreaded warning compiler message:
@@ -169,22 +194,21 @@ TARGET_GLOBAL_LDFLAGS += \
 			-Wl,-z,now \
 			-Wl,--warn-shared-textrel \
 			-Wl,--fatal-warnings \
-			-Wl,--icf=safe \
-			$(arch_variant_ldflags)
+			$(arch_variant_ldflags) $(gcc_variant_ldflags)
 
 TARGET_GLOBAL_CFLAGS += -mthumb-interwork
 
-TARGET_GLOBAL_CPPFLAGS += -fvisibility-inlines-hidden
+TARGET_GLOBAL_CPPFLAGS += -fvisibility-inlines-hidden \
+			$(arch_variant_cflags)
 
 # More flags/options can be added here
 TARGET_RELEASE_CFLAGS += \
 			-DNDEBUG \
 			-g \
-			-Wstrict-aliasing=2 \
-                        -Werror=strict-aliasing \
 			-fgcse-after-reload \
 			-frerun-cse-after-loop \
-			-frename-registers
+			-frename-registers \
+			-pipe
 
 libc_root := bionic/libc
 libm_root := bionic/libm
@@ -265,6 +289,12 @@ TARGET_STRIP_MODULE:=true
 TARGET_DEFAULT_SYSTEM_SHARED_LIBRARIES := libc libstdc++ libm
 
 TARGET_CUSTOM_LD_COMMAND := true
+
+# Enable the Dalvik JIT compiler if not already specified.
+ifeq ($(strip $(WITH_JIT)),)
+    WITH_JIT := true
+    WITH_JIT_TUNING := true
+endif
 
 define transform-o-to-shared-lib-inner
 $(hide) $(PRIVATE_CXX) \
