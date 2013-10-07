@@ -92,7 +92,7 @@ endif
 # Modules can choose to compile some source as thumb.
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
 TARGET_thumb_CFLAGS :=  -mthumb \
-                        -O3 \
+                        -Os \
                         -fomit-frame-pointer \
                         -fstrict-aliasing \
                         -funsafe-math-optimizations \
@@ -152,7 +152,7 @@ TARGET_GLOBAL_CFLAGS += \
 			-fstack-protector \
 			-Wa,--noexecstack \
 			-Werror=format-security \
-			-D_FORTIFY_SOURCE=1 \
+			-D_FORTIFY_SOURCE=0 \
 			-fno-short-enums \
                         -pipe \
 			$(arch_variant_cflags) $(STRICT_ALIASING_WARNINGS)
