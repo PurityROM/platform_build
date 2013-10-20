@@ -92,7 +92,7 @@ endif
 # Modules can choose to compile some source as thumb.
 ifeq ($(USE_LINARO_COMPILER_FLAGS),yes)
 TARGET_thumb_CFLAGS :=  -mthumb \
-                        -Os \
+                        -O3 \
                         -fomit-frame-pointer \
                         -fstrict-aliasing \
                         -funsafe-math-optimizations \
